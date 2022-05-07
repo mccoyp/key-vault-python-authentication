@@ -16,15 +16,16 @@
 # see the implementation in key_vault_sample_config.py
 
 import sys
-from key_vault_sample_base import KeyVaultSampleBase, keyvaultsample, get_name, run_all_samples
-from azure.common.credentials import ServicePrincipalCredentials
-from azure.keyvault import KeyVaultClient, KeyVaultAuthentication
-from azure.keyvault import KeyVaultId
+
+from azure.identity import DefaultAzureCredential, DeviceCodeCredential
+from azure.keyvault.secrets import SecretClient
+
+from key_vault_sample_base import KeyVaultSampleBase, keyvaultsample, run_all_samples
 
 
 class AuthenticationSample(KeyVaultSampleBase):
     """
-    A collection of samples that demonstrate authenticating with the KeyVaultClient and KeyVaultManagementClient 
+    A collection of samples that demonstrate authenticating with the SecretClient and KeyVaultManagementClient 
     """
 
     @keyvaultsample
@@ -32,103 +33,46 @@ class AuthenticationSample(KeyVaultSampleBase):
         """
         authenticates to the Azure Key Vault service using AAD service principle credentials 
         """
-        # create a vault to validate authentication with the KeyVaultClient
+        # create a vault to validate authentication with the SecretClient
         vault = self.create_vault()
 
         # create the service principle credentials used to authenticate the client
-        credentials = ServicePrincipalCredentials(client_id=self.config.client_id,
-                                                  secret=self.config.client_secret,
-                                                  tenant=self.config.tenant_id)
+        credential = DefaultAzureCredential()
 
         # create the client using the created credentials
-        client = KeyVaultClient(credentials)
+        client = SecretClient(vault_url=vault.properties.vault_uri, credential=credential)
 
         # set and get a secret from the vault to validate the client is authenticated
         print('creating secret...')
-        secret_bundle = client.set_secret(vault.properties.vault_uri, 'auth-sample-secret', 'client is authenticated to the vault')
-        print(secret_bundle)
+        secret = client.set_secret(name='auth-sample-secret', value='client is authenticated to the vault')
+        print(secret)
 
         print('getting secret...')
-        secret_bundle = client.get_secret(vault.properties.vault_uri, 'auth-sample-secret', secret_version=KeyVaultId.version_none)
-        print(secret_bundle)
-
-    @keyvaultsample
-    def auth_using_adal_callback(self):
-        """
-        authenticates to the Azure Key Vault by providing a callback to authenticate using adal 
-        """
-        # create a vault to validate authentication with the KeyVaultClient
-        vault = self.create_vault()
-
-        import adal
-
-        # create an adal authentication context
-        auth_context = adal.AuthenticationContext('https://login.microsoftonline.com/%s' % self.config.tenant_id)
-
-        # create a callback to supply the token type and access token on request
-        def adal_callback(server, resource, scope):
-            token = auth_context.acquire_token_with_client_credentials(resource=resource,
-                                                                       client_id=self.config.client_id,
-                                                                       client_secret=self.config.client_secret)
-            return token['tokenType'], token['accessToken']
-
-        # create a KeyVaultAuthentication instance which will callback to the supplied adal_callback
-        auth = KeyVaultAuthentication(adal_callback)
-
-        # create the KeyVaultClient using the created KeyVaultAuthentication instance
-        client = KeyVaultClient(auth)
-
-        # set and get a secret from the vault to validate the client is authenticated
-        print('creating secret...')
-        secret_bundle = client.set_secret(vault.properties.vault_uri, 'auth-sample-secret', 'client is authenticated to the vault')
-        print(secret_bundle)
-
-        print('getting secret...')
-        secret_bundle = client.get_secret(vault.properties.vault_uri, 'auth-sample-secret', secret_version=KeyVaultId.version_none)
-        print(secret_bundle)
+        secret = client.get_secret(name='auth-sample-secret', version=secret.properties.version)
+        print(secret)
 
     @keyvaultsample
     def auth_user_with_device_code(self):
         """
-        authenticates to the Azure Key Vault by providing a callback to authenticate using adal
+        authenticates to the Azure Key Vault by interactively authenticating using azure-identity
         """
         # create a vault to validate authentication with the KeyVaultClient
         vault = self.create_vault()
 
-        import adal
+        # create a DeviceCodeCredential that will prompt interactive authentication
+        credential = DeviceCodeCredential()
 
-        # create an adal authentication context
-        auth_context = adal.AuthenticationContext('https://login.microsoftonline.com/%s' % self.config.tenant_id)
-
-        # using the XPlat command line client id as it is available across all tenants and subscriptions
-        # this would be replaced by your app id
-        xplat_client_id = '04b07795-8ddb-461a-bbee-02f9e1bf7b46'
-
-        # create a callback to supply the token type and access token on request
-        def adal_callback(server, resource, scope):
-            user_code_info = auth_context.acquire_user_code(resource,
-                                                            xplat_client_id)
-
-            print(user_code_info['message'])
-            token = auth_context.acquire_token_with_device_code(resource=resource,
-                                                                client_id=xplat_client_id,
-                                                                user_code_info=user_code_info)
-            return token['tokenType'], token['accessToken']
-
-        # create a KeyVaultAuthentication instance which will callback to the supplied adal_callback
-        auth = KeyVaultAuthentication(adal_callback)
-
-        # create the KeyVaultClient using the created KeyVaultAuthentication instance
-        client = KeyVaultClient(auth)
+        # create the client using the created credentials
+        client = SecretClient(vault_url=vault.properties.vault_uri, credential=credential)
 
         # set and get a secret from the vault to validate the client is authenticated
         print('creating secret...')
-        secret_bundle = client.set_secret(vault.properties.vault_uri, 'auth-sample-secret', 'client is authenticated to the vault')
-        print(secret_bundle)
+        secret = client.set_secret(name='auth-sample-secret', value='client is authenticated to the vault')
+        print(secret)
 
         print('getting secret...')
-        secret_bundle = client.get_secret(vault.properties.vault_uri, 'auth-sample-secret', secret_version=KeyVaultId.version_none)
-        print(secret_bundle)
+        secret = client.get_secret(name='auth-sample-secret', version=secret.properties.version)
+        print(secret)
 
 
 if __name__ == "__main__":

@@ -5,19 +5,16 @@
 # --------------------------------------------------------------------------
 import sys
 import os
-import time
 import json
 import inspect
 import traceback
+from azure.identity import DefaultAzureCredential
 import azure.mgmt.keyvault.models
-import azure.keyvault.models
+import azure.keyvault.secrets._models
 from random import Random
 from key_vault_sample_config import KeyVaultSampleConfig
 from azure.mgmt.resource import ResourceManagementClient
 from azure.mgmt.keyvault import KeyVaultManagementClient
-from azure.keyvault import KeyVaultClient, KeyVaultAuthentication
-from msrest.exceptions import ClientRequestError
-from msrestazure.azure_active_directory import ServicePrincipalCredentials
 from msrest.paging import Paged
 from msrest.serialization import Serializer
 from azure.mgmt.keyvault.models import AccessPolicyEntry, VaultProperties, Sku, KeyPermissions, SecretPermissions, \
@@ -119,7 +116,7 @@ class KeyVaultSampleBase(object):
         self._setup_complete = False
         self.samples = {(name, m) for name, m in inspect.getmembers(self) if getattr(m, 'kv_sample', False)}
         models = {}
-        models.update({k: v for k, v in azure.keyvault.models.__dict__.items() if isinstance(v, type)})
+        models.update({k: v for k, v in azure.keyvault.secrets._models.__dict__.items() if isinstance(v, type)})
         models.update({k: v for k, v in azure.mgmt.keyvault.models.__dict__.items() if isinstance(v, type)})
         self._serializer = Serializer(models)
 
@@ -131,10 +128,7 @@ class KeyVaultSampleBase(object):
         :return: None 
         """
         if not self._setup_complete:
-            self.mgmt_creds = ServicePrincipalCredentials(client_id=self.config.client_id, secret=self.config.client_secret,
-                                                          tenant=self.config.tenant_id)
-            self.data_creds = ServicePrincipalCredentials(client_id=self.config.client_id, secret=self.config.client_secret,
-                                                          tenant=self.config.tenant_id)
+            self.mgmt_creds = DefaultAzureCredential()
             self.resource_mgmt_client = ResourceManagementClient(self.mgmt_creds, self.config.subscription_id)
 
             # ensure the service principle has key vault as a valid provider
@@ -144,8 +138,6 @@ class KeyVaultSampleBase(object):
             self.resource_mgmt_client.resource_groups.create_or_update(self.config.group_name, {'location': self.config.location})
 
             self.keyvault_mgmt_client = KeyVaultManagementClient(self.mgmt_creds, self.config.subscription_id)
-
-            self.keyvault_data_client = KeyVaultClient(self.data_creds)
 
             self._setup_complete = True
 
@@ -169,7 +161,7 @@ class KeyVaultSampleBase(object):
                                    permissions=permissions)
 
         properties = VaultProperties(tenant_id=self.config.tenant_id,
-                                     sku=Sku(name='standard'),
+                                     sku=Sku(name='standard', family="A"),
                                      access_policies=[policy])
 
         parameters = VaultCreateOrUpdateParameters(location=self.config.location, properties=properties)

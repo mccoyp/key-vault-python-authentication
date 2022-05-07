@@ -35,6 +35,8 @@ class KeyVaultSampleConfig(object):
     """
 
     def __init__(self):
+        from dotenv import load_dotenv
+        load_dotenv()
         # get credential information from the environment or replace the dummy values with your client credentials
         self.subscription_id = os.getenv('AZURE_SUBSCRIPTION_ID', '11111111-1111-1111-1111-111111111111')
         self.client_id = os.getenv('AZURE_CLIENT_ID', '22222222-2222-2222-2222-222222222222')

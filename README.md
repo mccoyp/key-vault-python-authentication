@@ -10,7 +10,7 @@ This Sample repo includes sample code demonstrating common mechanism for authent
 ## Samples in this repo
 * authentication_sample.py
   * auth_using_service_principle_credentials -- authenticates to an Azure Key Vault vault using AAD service principle credentials 
-  * auth_using_adal_callback -- authenticates to an Azure Key Vault vault by providing a callback to authenticate using adal
+  * auth_user_with_device_code -- authenticates to an Azure Key Vault vault interactively
 
 
 ## Running The samples
@@ -39,9 +39,9 @@ This Sample repo includes sample code demonstrating common mechanism for authent
     ```
 
 5. Create an Azure service principal, using 
-[Azure CLI](http://azure.microsoft.com/documentation/articles/resource-group-authenticate-service-principal-cli/),
-[PowerShell](http://azure.microsoft.com/documentation/articles/resource-group-authenticate-service-principal/)
-or [Azure Portal](http://azure.microsoft.com/documentation/articles/resource-group-create-service-principal-portal/).
+[Azure CLI](https://docs.microsoft.com/cli/azure/create-an-azure-service-principal-azure-cli),
+[PowerShell](https://docs.microsoft.com/powershell/azure/create-azure-service-principal-azureps)
+or [Azure Portal](https://docs.microsoft.com/azure/active-directory/develop/howto-create-service-principal-portal).
 
 6. Export these environment variables into your current shell. 
 
@@ -60,17 +60,17 @@ or [Azure Portal](http://azure.microsoft.com/documentation/articles/resource-gro
     ```
 
 ## Minimum Requirements
-Python 2.7, 3.3, or 3.4.
+Python 3.6+.
 To install Python, please go to https://www.python.org/downloads/
 
 ## More information
 
-* What is Key Vault? - https://docs.microsoft.com/en-us/azure/key-vault/key-vault-whatis
-* Get started with Azure Key Vault - https://docs.microsoft.com/en-us/azure/key-vault/key-vault-get-started
-* Azure Key Vault General Documentation - https://docs.microsoft.com/en-us/azure/key-vault/
-* Azure Key Vault REST API Reference - https://docs.microsoft.com/en-us/rest/api/keyvault/
-* Azure SDK for Python Documentation - https://docs.microsoft.com/en-us/python/api/overview/azure/key-vault?view=azure-python 
-* Azure Active Directory Documenation - https://docs.microsoft.com/en-us/azure/active-directory/
+* What is Key Vault? - https://docs.microsoft.com/azure/key-vault/general/overview
+* Get started with Azure Key Vault - https://docs.microsoft.com/azure/key-vault/general/basic-concepts
+* Azure Key Vault General Documentation - https://docs.microsoft.com/azure/key-vault/
+* Azure Key Vault REST API Reference - https://docs.microsoft.com/rest/api/keyvault/
+* Azure SDK for Python Documentation - https://docs.microsoft.com/python/api/overview/azure/key-vault
+* Azure Active Directory Documenation - https://docs.microsoft.com/azure/active-directory/
   
 # Contributing
 
